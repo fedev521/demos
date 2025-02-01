@@ -1,0 +1,15 @@
+*
+
+!go.*
+!*.go
+!cmd/
+!pkg/
+!internal/
+!vendor/
+!static/
+!api/
+!web/
+!test/
+
+!helloworld/
+!metrics/
