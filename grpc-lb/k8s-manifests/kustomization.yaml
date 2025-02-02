@@ -6,6 +6,7 @@ resources:
   - client.yaml
   - server.yaml
   - podmonitor.yaml
+  - envoy.yaml
 replicas:
   - name: demo-server
     count: 9
@@ -17,7 +18,8 @@ patches:
       name: demo-client
     # choose your patch:
     # path: use-standard-service.yaml
-    path: use-client-loadbalancing.yaml
+    # path: use-client-loadbalancing.yaml
+    path: use-envoy-proxy.yaml
   - target:
       kind: Namespace
       name: grpc-lb

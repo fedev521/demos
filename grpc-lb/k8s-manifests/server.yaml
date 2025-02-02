@@ -29,7 +29,6 @@ spec:
   clusterIP: None
   ports:
     - port: 50051
-      targetPort: grpc
       protocol: TCP
       name: grpc
   selector:
