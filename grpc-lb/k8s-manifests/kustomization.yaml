@@ -1,0 +1,38 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: grpc-lb
+resources:
+  - namespace.yaml
+  - client.yaml
+  - server.yaml
+  - podmonitor.yaml
+replicas:
+  - name: demo-server
+    count: 9
+  - name: demo-client
+    count: 2
+patches:
+  - target:
+      kind: Deployment
+      name: demo-client
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/args/0
+        value: "-addr=demo-server:50051"
+  - target:
+      kind: Namespace
+      name: grpc-lb
+    # This patch depends strictly on how your Prometheus operator is configured
+    # to discover PodMonitors.
+    patch: |-
+      - op: add
+        path: /metadata/labels
+        value:
+          prometheusPodMonitors: discoverable
+    # Another option could be:
+    # 1. deploy PodMonitor in prometheus namespace
+    # 2. make demo PodMonitor discover pods in grpc-lb namespace (instead of its
+    #    own namespace)
+    # 3. make Prometheus discover PodMonitors in its own namespace (e.g.
+    #    `podMonitorNamespaceSelector: {}`) You may not need it if Prometheus
+    #    has automatic pod discovery

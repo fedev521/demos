@@ -18,15 +18,16 @@ import (
 
 var (
 	addr         = flag.String("addr", "localhost:50051", "the address to connect to")
-	metricsPort  = flag.Int("metrics-port", 2110, "The metrics port to be scraped")
+	metricsPort  = flag.Int("metrics-port", 9090, "The metrics port to be scraped")
 	sleepSeconds = flag.Int("sleep-seconds", 3, "Idle interval between requests")
 )
 
 var (
 	grpcCounter = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "grpc_sent_requests_total",
-			Help: "Number of requests gRPC calls sent by a client",
+			Name:      "grpc_sent_requests_total",
+			Help:      "Number of requests gRPC calls sent by a client",
+			Namespace: "demo",
 		},
 		[]string{"service", "rpc", "client", "server"},
 	)

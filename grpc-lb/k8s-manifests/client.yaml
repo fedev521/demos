@@ -1,0 +1,39 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-client
+  labels:
+    app.kubernetes.io/name: client
+    app.kubernetes.io/instance: demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: client
+      app.kubernetes.io/instance: demo
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: client
+        app.kubernetes.io/instance: demo
+    spec:
+      containers:
+        - name: client
+          image: "docker.io/garzelli95/demos:grpc-lb-client"
+          imagePullPolicy: Always
+          args:
+            - -addr=demo-server:50051
+            - -metrics-port=9090
+            - -sleep-seconds=3
+          ports:
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "512Mi"
