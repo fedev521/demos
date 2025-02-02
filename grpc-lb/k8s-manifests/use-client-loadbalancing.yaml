@@ -1,0 +1,6 @@
+- op: replace
+  path: /spec/template/spec/containers/0/args/0
+  value: "-addr=dns:///demo-server-headless:50051"
+- op: replace
+  path: /spec/template/spec/containers/0/args/1
+  value: "-roundrobin=true"

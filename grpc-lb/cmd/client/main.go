@@ -17,7 +17,8 @@ import (
 )
 
 var (
-	addr         = flag.String("addr", "localhost:50051", "the address to connect to")
+	addr         = flag.String("addr", "localhost:50051", "The address to connect to")
+	roundRobin   = flag.Bool("roundrobin", false, "Whether to a roundrobin load balancing configuration")
 	metricsPort  = flag.Int("metrics-port", 9090, "The metrics port to be scraped")
 	sleepSeconds = flag.Int("sleep-seconds", 3, "Idle interval between requests")
 )
@@ -39,7 +40,13 @@ func main() {
 	go metrics.RunMetricsServer(*metricsPort)
 
 	// Set up a connection to the server.
-	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	opts := []grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	}
+	if *roundRobin {
+		opts = append(opts, grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`))
+	}
+	conn, err := grpc.NewClient(*addr, opts...)
 	if err != nil {
 		log.Fatalf("could not connect: %v", err)
 	}

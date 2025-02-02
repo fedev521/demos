@@ -24,6 +24,7 @@ spec:
           imagePullPolicy: Always
           args:
             - -addr=demo-server:50051
+            - -roundrobin=false
             - -metrics-port=9090
             - -sleep-seconds=3
           ports:

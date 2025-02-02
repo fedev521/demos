@@ -15,10 +15,9 @@ patches:
   - target:
       kind: Deployment
       name: demo-client
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/args/0
-        value: "-addr=demo-server:50051"
+    # choose your patch:
+    # path: use-standard-service.yaml
+    path: use-client-loadbalancing.yaml
   - target:
       kind: Namespace
       name: grpc-lb
@@ -34,5 +33,6 @@ patches:
     # 2. make demo PodMonitor discover pods in grpc-lb namespace (instead of its
     #    own namespace)
     # 3. make Prometheus discover PodMonitors in its own namespace (e.g.
-    #    `podMonitorNamespaceSelector: {}`) You may not need it if Prometheus
-    #    has automatic pod discovery
+    #    `podMonitorNamespaceSelector: {}`)
+    #
+    # You don't need it if Prometheus has automatic pod discovery.
