@@ -27,3 +27,4 @@ Useful resources:
 - https://github.com/grpc/grpc/blob/master/doc/load-balancing.md
 - https://github.com/jtattermusch/grpc-loadbalancing-kubernetes-examples
 - https://svkrclg.medium.com/grpc-load-balancing-using-envoy-e8972214da2c
+- https://github.com/sercand/kuberesolver
