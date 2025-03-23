@@ -1,27 +1,31 @@
-ARG DEBIAN_VERSION_ID=12
+ARG UV_TAG=latest
+ARG DEBIAN_TAG=12-slim
+ARG PYTHON_VERSION=3.12.9
 
 # ------------------------------------------------------------------------------
 
-FROM debian:${DEBIAN_VERSION_ID}-slim AS devbase
-RUN apt-get update && \
-    apt-get install --no-install-suggests --no-install-recommends --yes \
-    gcc \
-    libpython3-dev \
-    python3
-COPY --from=ghcr.io/astral-sh/uv:0.5.26 /uv /bin/uv
+# download uv
+FROM ghcr.io/astral-sh/uv:${UV_TAG} AS uv
 
 # ------------------------------------------------------------------------------
 
-FROM devbase AS builder
+FROM debian:${DEBIAN_TAG} AS builder
+COPY --from=uv /uv /bin/
 
-WORKDIR /app/
+# re-declare PYTHON_VERSION in this scope
+ARG PYTHON_VERSION
 
-ENV PATH=/app/.venv/bin:$PATH
-
+ENV UV_PYTHON=${PYTHON_VERSION}
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
 ENV UV_FROZEN=1
-ENV UV_PYTHON_PREFERENCE=only-system
+ENV UV_PYTHON_PREFERENCE=only-managed
+ENV UV_PYTHON_INSTALL_DIR=/python
+
+# install python (before project for caching)
+RUN uv python install
+
+WORKDIR /app
 
 # install dependencies only
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -32,10 +36,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --no-editable \
     --no-install-project
 
-COPY ./scripts /app/scripts
-COPY ./pyproject.toml ./uv.lock ./alembic.ini /app/
-COPY ./app /app/app
+# copy code (dockerignore is important)
+COPY . .
 
+# install in non-editable mode
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync \
     --no-dev \
@@ -43,17 +47,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # ------------------------------------------------------------------------------
 
-FROM gcr.io/distroless/python3-debian${DEBIAN_VERSION_ID}:nonroot AS production
-WORKDIR /app
+# may pin sha for reproducibility
+FROM gcr.io/distroless/python3-debian12:nonroot
+
+COPY --from=builder --chown=nonroot:nonroot --chmod=500 /python /python
 COPY --from=builder --chown=nonroot:nonroot /app/.venv /app/.venv
-ENTRYPOINT [ "/app/.venv/bin/fastapi", "run", "/app/.venv/lib/python3.11/site-packages/app/main.py" ]
 
-
-# Notes:
-# - gcc libpython3-dev are needed to compile C Python modules
-# - debian 12 bookworm has python 3.11.2
-# - note that 3.11 is hardcoded in the entrypoint
-# - https://github.com/GoogleContainerTools/distroless/tree/main/examples/python3-requirements
-# - https://docs.astral.sh/uv/guides/integration/docker/#optimizations
-# TODO:
-# - pin sha https://console.cloud.google.com/artifacts/docker/distroless/us/gcr.io/python3-debian12?inv=1&invt=AbnHRw
+ENTRYPOINT [ "/app/.venv/bin/start" ]
