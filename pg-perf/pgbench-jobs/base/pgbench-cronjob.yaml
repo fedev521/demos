@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pgbench
+spec:
+  suspend: true
+  schedule: "*/30 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: pgbench
+            image: postgres:17
+            command: [ "sh", "-c" ]
+            args:
+            - |
+              pgbench -h $PGHOST -U $PGUSER \
+                -T $TIME \
+                --client $CLIENT \
+                --jobs $JOBS \
+                --random-seed=$SEED \
+                $CONNECT_OPT $PGDATABASE
+            env:
+            - name: PGDATABASE
+              value: foo
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: zalando.pg.credentials.postgresql.acid.zalan.do
+                  key: username
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: zalando.pg.credentials.postgresql.acid.zalan.do
+                  key: password
+            envFrom:
+            - configMapRef:
+                name: pgbench
+          restartPolicy: Never

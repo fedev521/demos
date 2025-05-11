@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../no-pooler
+
+nameSuffix: -c
+
+configMapGenerator:
+- name: pgbench
+  behavior: merge
+  literals:
+  - CONNECT_OPT=--connect

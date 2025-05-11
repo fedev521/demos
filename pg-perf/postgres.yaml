@@ -1,0 +1,43 @@
+# https://github.com/zalando/postgres-operator/blob/master/docs/user.md
+# https://github.com/zalando/postgres-operator/blob/master/docs/reference/cluster_manifest.md
+apiVersion: "acid.zalan.do/v1"
+kind: postgresql
+metadata:
+  name: pg
+spec:
+  teamId: "acid"
+  volume:
+    size: 5Gi
+  numberOfInstances: 3
+  users:
+    # database owner
+    zalando:
+    - superuser
+    - createdb
+    foo_user: [] # role for application foo
+  databases:
+    foo: zalando # {dbname}: {owner}
+  preparedDatabases:
+    bar: {}
+  postgresql:
+    version: "17"
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  connectionPooler:
+    numberOfInstances: 2
+    mode: transaction
+    schema: pooler
+    user: pooler
+    maxDBConnections: 60 #  divided among the pooler pods
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
